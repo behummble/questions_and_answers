@@ -1,0 +1,15 @@
+server:
+  host: "localhost"
+  port: 8080
+  read_timeout: 30
+
+log:
+  path: "./app.log"
+  level: 1
+
+storage:
+  host: "127.0.0.1"
+  port: 5432
+  db_name: "mydatabase"
+  username: "myuser"
+  timezone: "UTC"
