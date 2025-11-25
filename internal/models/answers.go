@@ -19,6 +19,10 @@ type CreateAnswerRequest struct {
 	CreatedAt time.Time
 }
 
+type CreateAnswerResponse struct {
+	Answer Answer
+}
+
 type GetAnswerResponse struct {
 	Answer Answer
 }

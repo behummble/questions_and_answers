@@ -18,7 +18,7 @@ type Service struct {
 type StorageQuestion interface {
 	CreateQuestion(ctx context.Context, data models.Question) error
 	Question(ctx context.Context, id int) (models.GetQuestionResponse, error)
-	AllQuestions(ctx context.Context) (models.GetQuestionsResponse, error)
+	AllQuestions(ctx context.Context) ([]models.Question, error)
 	DeleteQuestion(ctx context.Context, id int) error
 	Exist(ctx context.Context, id int) (bool, error)
 	Shutdown(ctx context.Context)
@@ -44,15 +44,29 @@ func(s *Service) Shutdown(ctx context.Context) {
 	s.questionStorage.Shutdown(ctx)
 }
 
-func(s *Service) NewQuestion(ctx context.Context, question []byte) error {
+func(s *Service) NewQuestion(ctx context.Context, question []byte) (models.CreateQuestionResponse, error) {
 	var questionData models.Question
 	err := json.Unmarshal(question, &questionData)
 	if err != nil {
-		s.log.Error("Json parse error", err)
-		return err
+		s.log.Error(
+			"ParsingJSONError", 
+			slog.String("component", "json/unmarshalling"),
+			slog.Any("error", err),
+		)
+		return models.CreateQuestionResponse{}, errors.New("DecodingDataError")
 	}
 
-	return s.questionStorage.CreateQuestion(ctx, questionData)
+	err = s.questionStorage.CreateQuestion(ctx, questionData)
+	if err != nil {
+		s.log.Error(
+			"DB_WritingError", 
+			slog.String("component", "db"),
+			slog.Any("error", err),
+		)
+		return models.CreateQuestionResponse{}, errors.New("DB_WritingError")
+	}
+
+	return models.CreateQuestionResponse{Question: questionData}, err
 }
 
 func(s *Service) Question(ctx context.Context, id int) (models.GetQuestionResponse, error) {	
@@ -60,36 +74,92 @@ func(s *Service) Question(ctx context.Context, id int) (models.GetQuestionRespon
 }
 
 func(s *Service) AllQuestions(ctx context.Context) (models.GetQuestionsResponse, error) {
-	return s.questionStorage.AllQuestions(ctx)
+	allQuestions, err := s.questionStorage.AllQuestions(ctx)
+	if err != nil {
+		s.log.Error(
+			"DB_ReadingError", 
+			slog.String("component", "db"),
+			slog.Any("error", err),
+		)
+		return  models.GetQuestionsResponse{}, err
+	}
+
+	return models.GetQuestionsResponse{Questions: allQuestions}, err
 }
 
 func(s *Service) DeleteQuestion(ctx context.Context, id int) error {
-	return s.questionStorage.DeleteQuestion(ctx, id)
+	err := s.questionStorage.DeleteQuestion(ctx, id)
+	if err != nil {
+		s.log.Error(
+			"DB_DeletingError", 
+			slog.String("component", "db"),
+			slog.Any("error", err),
+		)
+		return errors.New("DB_DeletingError")
+	}
+	return nil
 }
 
-func(s *Service) NewAnswer(ctx context.Context, answer []byte, questionID int) error {
+func(s *Service) NewAnswer(ctx context.Context, answer []byte, questionID int) (models.CreateAnswerResponse, error) {
 	exist, err := s.questionStorage.Exist(ctx, questionID)
 	if err != nil {
-		return err
+		s.log.Error(
+			"DB_ReadingError", 
+			slog.String("component", "db"),
+			slog.Any("error", err),
+		)
+		return models.CreateAnswerResponse{}, errors.New("DBReadingError")
 	}
 	if !exist {
-		return errors.New("Question with sended id not exist")
+		return models.CreateAnswerResponse{}, errors.New("QuestionWithSendedIDNotExist")
 	}
 	
 	var answerData models.Answer
 	err = json.Unmarshal(answer, &answerData)
 	if err != nil {
-		s.log.Error("Json parse error", err)
-		return err
+		s.log.Error(
+			"ParsingJSONError", 
+			slog.String("component", "json/unmarshaling"),
+			slog.Any("error", err),
+		)
+		return models.CreateAnswerResponse{}, errors.New("ParsingJSONError")
 	}
 
-	return s.answerStorage.CreateAnswer(ctx, answerData)
+	err = s.answerStorage.CreateAnswer(ctx, answerData)
+	if err != nil {
+		s.log.Error(
+			"DB_WritingError", 
+			slog.String("component", "db"),
+			slog.Any("error", err),
+		)
+		return models.CreateAnswerResponse{}, errors.New("DB_WritingError")
+	}
+
+	return models.CreateAnswerResponse{Answer: answerData}, err
 }
 
-func(s *Service) Answer(ctx context.Context, id int) (models.Answer, error) {
-	return s.answerStorage.GetAnswer(ctx, id)
+func(s *Service) Answer(ctx context.Context, id int) (models.GetAnswerResponse, error) {
+	answer, err := s.answerStorage.GetAnswer(ctx, id)
+	if err != nil {
+		s.log.Error(
+			"DB_ReadingError", 
+			slog.String("component", "db"),
+			slog.Any("error", err),
+		)
+	}
+	return models.GetAnswerResponse{Answer: answer}, err
 }
 
 func(s *Service) DeleteAnswer(ctx context.Context, id int) error {
-	return s.answerStorage.DeleteAnswer(ctx, id)
+	err := s.answerStorage.DeleteAnswer(ctx, id)
+	if err != nil {
+		s.log.Error(
+			"DB_DeletingError", 
+			slog.String("component", "db"),
+			slog.Any("error", err),
+		)
+		return errors.New("DB_DeletingError")
+	}
+
+	return nil
 }

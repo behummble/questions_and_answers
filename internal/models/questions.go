@@ -16,11 +16,15 @@ type CreateQuestionRequest struct {
 	CreatedAt time.Time
 }
 
+type CreateQuestionResponse struct {
+	Question Question
+}
+
 type GetQuestionsResponse struct {
 	Questions []Question
 }
 
 type GetQuestionResponse struct {
 	Question Question
-	Answers[]Answer
+	Answers []Answer
 }

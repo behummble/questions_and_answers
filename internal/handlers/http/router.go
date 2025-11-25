@@ -59,14 +59,14 @@ func (r *Router) addRoute(method, pattern string, handler http.HandlerFunc) {
 }
 
 func(r *Router) register(s *Server) {
-    r.addRoute("POST", "/questions/{id}/answers/", s.answers)
-    r.addRoute("GET", "/answers/{id}", s.answers)
-    r.addRoute("DELETE", "/answers/{id}", s.answers)
+    r.addRoute("POST", "/questions/{id}/answers/", s.createAnswer)
+    r.addRoute("GET", "/answers/{id}", s.getAnswer)
+    r.addRoute("DELETE", "/answers/{id}", s.deleteAnswer)
     
-    r.addRoute("GET", "/questions", s.questions)
-    r.addRoute("POST", "/questions", s.questions)
-    r.addRoute("GET", "/questions/{id}", s.questions)
-    r.addRoute("DELETE", "/questions/{id}", s.questions)
+    r.addRoute("POST", "/questions", s.createQuestion)
+    r.addRoute("GET", "/questions", s.getAllQuestions)
+    r.addRoute("GET", "/questions/{id}", s.getQuestion)
+    r.addRoute("DELETE", "/questions/{id}", s.deleteQuestion)
 }
 
 // Helper to get path parameter from context

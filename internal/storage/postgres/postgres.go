@@ -31,7 +31,11 @@ func NewStorage(ctx context.Context, log *slog.Logger, cfg config.StorageConfig)
 }
 
 func(storage *Storage) Shutdown(ctx context.Context) {
-	//gorm.
+	db, err := storage.conn.DB()
+	if err != nil {
+		return
+	}
+	db.Close()
 }
 
 func parseConnectStr(cfg config.StorageConfig) string {

@@ -14,18 +14,23 @@ import (
 )
 
 func main() {
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
+	ctx, stop := signal.NotifyContext(
+		context.Background(), 
+		os.Interrupt)
 	defer stop()
-	cfg := config.NewConfig()
+	cfg := config.MustLoad()
 	log := newLog(cfg.Log)
 	storage := postgres.NewStorage(ctx, log, cfg.Storage)
+	log.Info("DB connected")
 	service := service.NewService(log, storage, storage)
 	server := http.NewServer(ctx, log, &cfg.Server, service)
 	go server.Start()
+	log.Info("Server is Up")
 	<- ctx.Done()
-	srvContext, cancel := context.WithTimeout(context.Background(), 10 * time.Second)
+	shutdownContext, cancel := context.WithTimeout(context.Background(), 10 * time.Second)
 	defer cancel()
-	server.Shutdown(srvContext)
+	server.Shutdown(shutdownContext)
+	service.Shutdown(shutdownContext)
 }
 
 func newLog(config config.LogConfig) *slog.Logger {
