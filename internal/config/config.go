@@ -27,8 +27,8 @@ type StorageConfig struct {
 	Host string `yaml:"host" env:"DB_HOST" env-default:"127.0.0.1"`
 	Port int `yaml:"port" env:"DB_PORT" env-default:"5432"`
 	DBName string `yaml:"db_name"`
-	Username string `yaml:"username"`
-	Password string `yaml:"password" env:"PSTGRS_PASSWORD"`
+	Username string `yaml:"username" env:"POSTGRES_USER" end-default:"admin"`
+	Password string `yaml:"password" env:"POSTGRES_PASSWORD" env-default:"admin"`
 	TimeZone string `yaml:"timezone"`
 }
 

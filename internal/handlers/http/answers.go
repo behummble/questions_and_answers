@@ -8,8 +8,8 @@ import (
 )
 
 
-func(s *Server) createAnswer(writer http.ResponseWriter, request *http.Request) {
-	ctx, cancel := context.WithTimeout(request.Context(), 5 * time.Second)
+func(s *Server) CreateAnswer(writer http.ResponseWriter, request *http.Request) {
+	ctx, cancel := context.WithTimeout(request.Context(), 30 * time.Second)
 	defer cancel()
 	data, err := executeRequestBody(request, s.log)
 	if err != nil {
@@ -18,12 +18,19 @@ func(s *Server) createAnswer(writer http.ResponseWriter, request *http.Request) 
 		return
 	}
 
+	if len(data) == 0 {
+		writer.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(writer, "Empty body")
+	}
+
 	id, err := getID(request)
 	if err != nil {
 		writer.WriteHeader(http.StatusBadRequest)
 		fmt.Fprint(writer, err.Error())
 		return
 	}
+
+	s.log.Info(fmt.Sprintf("Recive a request to create answer for question with id: %d", id))
 
 	res, err := s.service.NewAnswer(ctx, data, id)
 	if err != nil {
@@ -35,8 +42,8 @@ func(s *Server) createAnswer(writer http.ResponseWriter, request *http.Request) 
 	writer.Write(bytes)
 }
 
-func(s *Server) getAnswer(writer http.ResponseWriter, request *http.Request) {
-	ctx, cancel := context.WithTimeout(request.Context(), 5 * time.Second)
+func(s *Server) GetAnswer(writer http.ResponseWriter, request *http.Request) {
+	ctx, cancel := context.WithTimeout(request.Context(), 30 * time.Second)
 	defer cancel()
 	id, err := getID(request)
 	if err != nil {
@@ -44,6 +51,7 @@ func(s *Server) getAnswer(writer http.ResponseWriter, request *http.Request) {
 		fmt.Fprint(writer, err.Error())
 		return
 	}
+	s.log.Info(fmt.Sprintf("Recive request for get answer with id: %d", id))
 	res, err := s.service.Answer(ctx, id)
 	if err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
@@ -54,8 +62,8 @@ func(s *Server) getAnswer(writer http.ResponseWriter, request *http.Request) {
 	writer.Write(bytes)
 }
 
-func(s *Server) deleteAnswer(writer http.ResponseWriter, request *http.Request) {
-	ctx, cancel := context.WithTimeout(request.Context(), 5 * time.Second)
+func(s *Server) DeleteAnswer(writer http.ResponseWriter, request *http.Request) {
+	ctx, cancel := context.WithTimeout(request.Context(), 30 * time.Second)
 	defer cancel()
 	id, err := getID(request)
 	if err != nil {
@@ -63,6 +71,7 @@ func(s *Server) deleteAnswer(writer http.ResponseWriter, request *http.Request) 
 		fmt.Fprint(writer, err.Error())
 		return
 	}
+	s.log.Info(fmt.Sprintf("Recive request for delete answer with id: %d", id))
 	err = s.service.DeleteAnswer(ctx, id)
 	if err != nil {
 		writer.WriteHeader(http.StatusBadRequest)

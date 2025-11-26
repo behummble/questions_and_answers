@@ -55,29 +55,28 @@ func(s *Server) Shutdown(ctx context.Context) error {
 
 func newMux(s *Server) *http.ServeMux {
 	mux := http.NewServeMux()
-	mux.HandleFunc("POST /api/v1/questions", s.createQuestion)
-	mux.HandleFunc("GET /api/v1/questions", s.getAllQuestions)
-	mux.HandleFunc("GET /api/v1//questions/{id}", s.getQuestion)
-	mux.HandleFunc("DELETE /api/v1/questions/{id}", s.deleteQuestion)
+	mux.HandleFunc("POST /questions", s.CreateQuestion)
+	mux.HandleFunc("GET /questions", s.GetAllQuestions)
+	mux.HandleFunc("GET /questions/{id}", s.GetQuestion)
+	mux.HandleFunc("DELETE /questions/{id}", s.DeleteQuestion)
 
-	mux.HandleFunc("POST /api/v1/questions/{id}/answers", s.createAnswer)
-	mux.HandleFunc("GET /api/v1/answers/{id}", s.getAnswer)
-	mux.HandleFunc("DELETE /api/v1/answers/{id}", s.deleteAnswer)
+	mux.HandleFunc("POST /questions/{id}/answers", s.CreateAnswer)
+	mux.HandleFunc("GET /answers/{id}", s.GetAnswer)
+	mux.HandleFunc("DELETE /answers/{id}", s.DeleteAnswer)
 	
 	return mux
 }
 
 func executeRequestBody(request *http.Request, log *slog.Logger) ([]byte, error) {
-	body, err := request.GetBody()
-	if err != nil {
+	if request.Body == nil {
 		log.Error(
 			"ExecutionBodyError", 
 			slog.String("component", "io/Read"),
-			slog.Any("error", err),
+			slog.Any("error", "Empty body"),
 		)
 		return nil, errors.New("ExecutionBodyError")
 	}
-	data, err := io.ReadAll(body)
+	data, err := io.ReadAll(request.Body)
 	if err != nil {
 		log.Error(
 			"ReadingRequestBodyError", 

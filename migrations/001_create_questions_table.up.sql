@@ -1,5 +1,0 @@
-CREATE TABLE questions (
-    id SERIAL PRIMARY KEY,
-    text TEXT,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);

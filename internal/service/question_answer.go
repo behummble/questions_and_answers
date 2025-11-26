@@ -16,8 +16,8 @@ type Service struct {
 }
 
 type StorageQuestion interface {
-	CreateQuestion(ctx context.Context, data models.Question) error
-	Question(ctx context.Context, id int) (models.GetQuestionResponse, error)
+	CreateQuestion(ctx context.Context, data *models.Question) error
+	Question(ctx context.Context, id int) (models.QuestionWithAnswers, error)
 	AllQuestions(ctx context.Context) ([]models.Question, error)
 	DeleteQuestion(ctx context.Context, id int) error
 	Exist(ctx context.Context, id int) (bool, error)
@@ -25,7 +25,7 @@ type StorageQuestion interface {
 }
 
 type StorageAnswer interface {
-	CreateAnswer(ctx context.Context, data models.Answer) error
+	CreateAnswer(ctx context.Context, data *models.Answer) error
 	GetAnswer(ctx context.Context, id int) (models.Answer, error)
 	DeleteAnswer(ctx context.Context, id int) error
 	Shutdown(ctx context.Context)
@@ -45,8 +45,8 @@ func(s *Service) Shutdown(ctx context.Context) {
 }
 
 func(s *Service) NewQuestion(ctx context.Context, question []byte) (models.CreateQuestionResponse, error) {
-	var questionData models.Question
-	err := json.Unmarshal(question, &questionData)
+	var questionRequest models.CreateQuestionRequest
+	err := json.Unmarshal(question, &questionRequest)
 	if err != nil {
 		s.log.Error(
 			"ParsingJSONError", 
@@ -56,7 +56,15 @@ func(s *Service) NewQuestion(ctx context.Context, question []byte) (models.Creat
 		return models.CreateQuestionResponse{}, errors.New("DecodingDataError")
 	}
 
-	err = s.questionStorage.CreateQuestion(ctx, questionData)
+	if questionRequest.Text == "" {
+		return models.CreateQuestionResponse{}, errors.New("BodyExecutionError")
+	}
+
+	questionData := models.Question{
+		Text: questionRequest.Text,
+	}
+
+	err = s.questionStorage.CreateQuestion(ctx, &questionData)
 	if err != nil {
 		s.log.Error(
 			"DB_WritingError", 
@@ -70,7 +78,17 @@ func(s *Service) NewQuestion(ctx context.Context, question []byte) (models.Creat
 }
 
 func(s *Service) Question(ctx context.Context, id int) (models.GetQuestionResponse, error) {	
-	return s.questionStorage.Question(ctx, id)
+	res, err := s.questionStorage.Question(ctx, id)
+	if err != nil {
+		s.log.Error(
+			"DB_ReadingError", 
+			slog.String("component", "db"),
+			slog.Any("error", err),
+		)
+		return  models.GetQuestionResponse{}, err
+	}
+
+	return models.GetQuestionResponse{Question: res.Question, Answers: res.Answers}, nil
 }
 
 func(s *Service) AllQuestions(ctx context.Context) (models.GetQuestionsResponse, error) {
@@ -114,8 +132,8 @@ func(s *Service) NewAnswer(ctx context.Context, answer []byte, questionID int) (
 		return models.CreateAnswerResponse{}, errors.New("QuestionWithSendedIDNotExist")
 	}
 	
-	var answerData models.Answer
-	err = json.Unmarshal(answer, &answerData)
+	var answerRequest models.CreateAnswerRequest
+	err = json.Unmarshal(answer, &answerRequest)
 	if err != nil {
 		s.log.Error(
 			"ParsingJSONError", 
@@ -125,7 +143,17 @@ func(s *Service) NewAnswer(ctx context.Context, answer []byte, questionID int) (
 		return models.CreateAnswerResponse{}, errors.New("ParsingJSONError")
 	}
 
-	err = s.answerStorage.CreateAnswer(ctx, answerData)
+	if answerRequest.Text == "" {
+		return models.CreateAnswerResponse{}, errors.New("BodyExecutionError")
+	}
+
+	answerData := models.Answer{
+		Text: answerRequest.Text,
+		UserID: answerRequest.UserID,
+		QuestionID: questionID,
+	}
+
+	err = s.answerStorage.CreateAnswer(ctx, &answerData)
 	if err != nil {
 		s.log.Error(
 			"DB_WritingError", 

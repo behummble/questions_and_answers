@@ -11,9 +11,7 @@ type Question struct {
 }
 
 type CreateQuestionRequest struct {
-	ID int
 	Text string
-	CreatedAt time.Time
 }
 
 type CreateQuestionResponse struct {
@@ -26,5 +24,10 @@ type GetQuestionsResponse struct {
 
 type GetQuestionResponse struct {
 	Question Question
+	Answers []Answer
+}
+
+type QuestionWithAnswers struct {
+	Question
 	Answers []Answer
 }

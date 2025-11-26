@@ -6,12 +6,12 @@ import (
 	"github.com/behummble/Questions-answers/internal/models"
 )
 
-func(s *Storage) CreateQuestion(ctx context.Context, data models.Question) error {
-	return gorm.G[models.Question](s.conn).Create(ctx, &data)
+func(s *Storage) CreateQuestion(ctx context.Context, data *models.Question) error {
+	return gorm.G[models.Question](s.conn).Create(ctx, data)
 }
 
-func(s *Storage) Question(ctx context.Context, id int) (models.GetQuestionResponse, error) {
-	return gorm.G[models.GetQuestionResponse](s.conn).Where("id = ?", id).First(ctx)
+func(s *Storage) Question(ctx context.Context, id int) (models.QuestionWithAnswers, error) {
+	return gorm.G[models.QuestionWithAnswers](s.conn).Where("id = ?", id).First(ctx)
 }
 
 func(s *Storage) AllQuestions(ctx context.Context) ([]models.Question, error) {

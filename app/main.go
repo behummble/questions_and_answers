@@ -6,18 +6,25 @@ import (
 	"os"
 	"os/signal"
 	"time"
+	"syscall"
 
 	"github.com/behummble/Questions-answers/internal/config"
 	"github.com/behummble/Questions-answers/internal/handlers/http"
 	"github.com/behummble/Questions-answers/internal/service"
 	"github.com/behummble/Questions-answers/internal/storage/postgres"
+	"github.com/joho/godotenv"
 )
 
 func main() {
 	ctx, stop := signal.NotifyContext(
 		context.Background(), 
-		os.Interrupt)
+		os.Interrupt,
+		syscall.SIGTERM,
+        syscall.SIGINT,
+        syscall.SIGQUIT,
+	)
 	defer stop()
+	setEnv()
 	cfg := config.MustLoad()
 	log := newLog(cfg.Log)
 	storage := postgres.NewStorage(ctx, log, cfg.Storage)
@@ -30,7 +37,9 @@ func main() {
 	shutdownContext, cancel := context.WithTimeout(context.Background(), 10 * time.Second)
 	defer cancel()
 	server.Shutdown(shutdownContext)
+	log.Info("Server is Down")
 	service.Shutdown(shutdownContext)
+	log.Info("DB is Down")
 }
 
 func newLog(config config.LogConfig) *slog.Logger {
@@ -50,4 +59,11 @@ func newLog(config config.LogConfig) *slog.Logger {
 			&slog.HandlerOptions{Level: slog.Level(config.Level)},
 		),
 	)
+}
+
+func setEnv() {
+	err := godotenv.Load("./.env")
+	if err != nil {
+		panic(err)
+	}
 }

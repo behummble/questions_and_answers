@@ -13,10 +13,8 @@ type Answer struct {
 }
 
 type CreateAnswerRequest struct {
-	ID int
 	UserID int
 	Text string
-	CreatedAt time.Time
 }
 
 type CreateAnswerResponse struct {
