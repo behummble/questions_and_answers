@@ -5,7 +5,7 @@ services:
     container_name: questions_answers
     build:
       context: .
-      dockerfile: ./build/app.Dockerfile
+      dockerfile: ./build/Dockerfile
     ports:
       - "8080:8080"
     depends_on:

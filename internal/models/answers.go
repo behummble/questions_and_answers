@@ -6,14 +6,15 @@ import (
 
 type Answer struct {
 	ID int
+	Question `gorm:"foreignKey:question_id"`
 	QuestionID int
-	UserID int
+	UserID string
 	Text string
 	CreatedAt time.Time
 }
 
 type CreateAnswerRequest struct {
-	UserID int
+	UserID string
 	Text string
 }
 

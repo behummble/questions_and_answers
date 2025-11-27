@@ -46,7 +46,10 @@ func NewServer(ctx context.Context, log *slog.Logger, cfg *config.ServerConfig, 
 }
 
 func(s *Server) Start() {
-	panic(s.server.ListenAndServe())
+	err := s.server.ListenAndServe()
+	if err != nil && err != http.ErrServerClosed {
+        panic(err)
+    }
 }
 
 func(s *Server) Shutdown(ctx context.Context) error {

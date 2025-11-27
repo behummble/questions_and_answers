@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"time"
+	"errors"
 )
 
 func(s *Server) CreateQuestion(writer http.ResponseWriter, request *http.Request) {
@@ -22,12 +23,14 @@ func(s *Server) CreateQuestion(writer http.ResponseWriter, request *http.Request
 	if len(data) == 0 {
 		writer.WriteHeader(http.StatusBadRequest)
 		fmt.Fprint(writer, "Empty body")
+		return
 	}
 
 	res, err := s.service.NewQuestion(ctx, data)
 	if err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprint(writer, err.Error())
+		return
 	}
 	bytes := prepareResponse(res, s.log)
 	writer.WriteHeader(http.StatusCreated)
@@ -41,6 +44,7 @@ func(s *Server) GetAllQuestions(writer http.ResponseWriter, request *http.Reques
 	if err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprint(writer, err.Error())
+		return
 	}
 	s.log.Info("Recive request to get all question")
 	bytes := prepareResponse(res, s.log)
@@ -60,8 +64,13 @@ func(s *Server) GetQuestion(writer http.ResponseWriter, request *http.Request) {
 	s.log.Info(fmt.Sprintf("Recive a request to get question with id: %d", id))
 	res, err := s.service.Question(ctx, id)
 	if err != nil {
-		writer.WriteHeader(http.StatusInternalServerError)
+		if err == errors.New("NotFound") {
+			writer.WriteHeader(http.StatusNotFound)
+		} else {
+			writer.WriteHeader(http.StatusInternalServerError)
+		}
 		fmt.Fprint(writer, err.Error())
+		return
 	}
 	bytes := prepareResponse(res, s.log)
 	writer.WriteHeader(http.StatusOK)
@@ -80,7 +89,11 @@ func(s *Server) DeleteQuestion(writer http.ResponseWriter, request *http.Request
 	s.log.Info(fmt.Sprintf("Recive a request to delete question with id: %d", id))
 	err = s.service.DeleteQuestion(ctx, id)
 	if err != nil {
-		writer.WriteHeader(http.StatusBadRequest)
+		if err == errors.New("NotFound") {
+			writer.WriteHeader(http.StatusNotFound)
+		} else {
+			writer.WriteHeader(http.StatusInternalServerError)
+		}
 		fmt.Fprint(writer, err.Error())
 		return
 	}

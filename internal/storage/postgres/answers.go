@@ -14,7 +14,6 @@ func(s *Storage) GetAnswer(ctx context.Context, id int) (models.Answer, error) {
 	return gorm.G[models.Answer](s.conn).Where("id = ?", id).First(ctx)
 }
 
-func(s *Storage) DeleteAnswer(ctx context.Context, id int) error{
-	_, err := gorm.G[models.Answer](s.conn).Where("id = ?", id).Delete(ctx)
-	return err
+func(s *Storage) DeleteAnswer(ctx context.Context, id int) (int, error) {
+	return gorm.G[models.Answer](s.conn).Where("id = ?", id).Delete(ctx)
 }

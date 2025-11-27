@@ -28,6 +28,6 @@ type GetQuestionResponse struct {
 }
 
 type QuestionWithAnswers struct {
-	Question
+	Question Question
 	Answers []Answer
 }

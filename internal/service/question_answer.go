@@ -4,9 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log/slog"
 
 	"github.com/behummble/Questions-answers/internal/models"
+	"gorm.io/gorm"
 )
 
 type Service struct {
@@ -19,7 +21,7 @@ type StorageQuestion interface {
 	CreateQuestion(ctx context.Context, data *models.Question) error
 	Question(ctx context.Context, id int) (models.QuestionWithAnswers, error)
 	AllQuestions(ctx context.Context) ([]models.Question, error)
-	DeleteQuestion(ctx context.Context, id int) error
+	DeleteQuestion(ctx context.Context, id int) (int, error)
 	Exist(ctx context.Context, id int) (bool, error)
 	Shutdown(ctx context.Context)
 }
@@ -27,7 +29,7 @@ type StorageQuestion interface {
 type StorageAnswer interface {
 	CreateAnswer(ctx context.Context, data *models.Answer) error
 	GetAnswer(ctx context.Context, id int) (models.Answer, error)
-	DeleteAnswer(ctx context.Context, id int) error
+	DeleteAnswer(ctx context.Context, id int) (int, error)
 	Shutdown(ctx context.Context)
 }
 
@@ -74,18 +76,24 @@ func(s *Service) NewQuestion(ctx context.Context, question []byte) (models.Creat
 		return models.CreateQuestionResponse{}, errors.New("DB_WritingError")
 	}
 
+	s.log.Info(fmt.Sprintf("Write new question with id: %d", questionData.ID))
+
 	return models.CreateQuestionResponse{Question: questionData}, err
 }
 
 func(s *Service) Question(ctx context.Context, id int) (models.GetQuestionResponse, error) {	
 	res, err := s.questionStorage.Question(ctx, id)
-	if err != nil {
+	if err != nil && err != gorm.ErrRecordNotFound {
 		s.log.Error(
 			"DB_ReadingError", 
 			slog.String("component", "db"),
 			slog.Any("error", err),
 		)
 		return  models.GetQuestionResponse{}, err
+	}
+
+	if err != nil {
+		return models.GetQuestionResponse{}, errors.New("NotFound")
 	}
 
 	return models.GetQuestionResponse{Question: res.Question, Answers: res.Answers}, nil
@@ -106,7 +114,7 @@ func(s *Service) AllQuestions(ctx context.Context) (models.GetQuestionsResponse,
 }
 
 func(s *Service) DeleteQuestion(ctx context.Context, id int) error {
-	err := s.questionStorage.DeleteQuestion(ctx, id)
+	rowsAffected, err := s.questionStorage.DeleteQuestion(ctx, id)
 	if err != nil {
 		s.log.Error(
 			"DB_DeletingError", 
@@ -115,6 +123,10 @@ func(s *Service) DeleteQuestion(ctx context.Context, id int) error {
 		)
 		return errors.New("DB_DeletingError")
 	}
+	if rowsAffected == 0 {
+		return errors.New("NotFound")
+	}
+	s.log.Info(fmt.Sprintf("Delete question with id: %d", id))
 	return nil
 }
 
@@ -163,23 +175,29 @@ func(s *Service) NewAnswer(ctx context.Context, answer []byte, questionID int) (
 		return models.CreateAnswerResponse{}, errors.New("DB_WritingError")
 	}
 
+	s.log.Info(fmt.Sprintf("Create answer: %d for question with id: %d", answerData.ID, questionID))
+
 	return models.CreateAnswerResponse{Answer: answerData}, err
 }
 
 func(s *Service) Answer(ctx context.Context, id int) (models.GetAnswerResponse, error) {
 	answer, err := s.answerStorage.GetAnswer(ctx, id)
-	if err != nil {
+	if err != nil && err != gorm.ErrRecordNotFound {
 		s.log.Error(
 			"DB_ReadingError", 
 			slog.String("component", "db"),
 			slog.Any("error", err),
 		)
+		return models.GetAnswerResponse{}, err
+	}
+	if err != nil {
+		return models.GetAnswerResponse{}, errors.New("NotFound")
 	}
 	return models.GetAnswerResponse{Answer: answer}, err
 }
 
 func(s *Service) DeleteAnswer(ctx context.Context, id int) error {
-	err := s.answerStorage.DeleteAnswer(ctx, id)
+	rowsAffected, err := s.answerStorage.DeleteAnswer(ctx, id)
 	if err != nil {
 		s.log.Error(
 			"DB_DeletingError", 
@@ -188,6 +206,9 @@ func(s *Service) DeleteAnswer(ctx context.Context, id int) error {
 		)
 		return errors.New("DB_DeletingError")
 	}
-
+	if rowsAffected == 0 {
+		return errors.New("NotFound")
+	}
+	s.log.Info(fmt.Sprintf("Delete answer with id: %d", id))
 	return nil
 }

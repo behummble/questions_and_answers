@@ -2,7 +2,7 @@ FROM golang:1.24.2-alpine as builder
 
 ENV CGO_ENABLED 0
 RUN apk update --no-cache && apk add --no-cache tzdata
-WORKDIR /build
+WORKDIR /app
 
 ADD go.mod .
 ADD go.sum .
@@ -10,14 +10,17 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -o /app/server ./app/main.go
+RUN go build -o server_app ./app/main.go
 
 FROM alpine
 RUN apk update --no-cache && apk add --no-cache ca-certificates
 COPY --from=builder /usr/share/zoneinfo/Europe/Moscow /usr/share/zoneinfo/Europe/Moscow
 ENV TZ Europe/Moscow
 WORKDIR /app
-COPY --from=builder /app/support_line /app/support_line
-COPY --from=builder /build/app.env /app/app.env
-COPY --from=builder /build/config/config.yaml /app/config/config.yaml
-CMD [ "./app/server" ]
+COPY --from=builder /build/server_app ./server
+COPY --from=builder /build/.env /tmp/.env
+RUN mv /tmp/.env .
+COPY --from=builder /build/config/config.yaml /tmp/config.yaml
+RUN mkdir -p config && mv /tmp/config.yaml config/
+
+CMD [ "./server" ]

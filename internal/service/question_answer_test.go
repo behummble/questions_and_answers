@@ -143,7 +143,7 @@ func TestNewAnswerCorrect(t *testing.T) {
 			ID: 1,
 			Text: "test",
 			CreatedAt: time.Date(2000, time.January, 1, 8, 8, 8, 8, time.UTC),
-			UserID: 5,
+			UserID: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
 			QuestionID: question.Question.ID,
 		},
 	}
@@ -243,7 +243,7 @@ func CreateQuestion(service *Service, t *testing.T) (models.CreateQuestionRespon
 func CreateAnswer(service *Service, questionID int, t *testing.T) (models.CreateAnswerResponse, error) {
 	m := models.CreateAnswerRequest{
 		Text: "test",
-		UserID: 5,
+		UserID: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
 	}
 	raw, err := json.Marshal(m)
 	if err != nil {
@@ -285,12 +285,12 @@ func(s *StorageMockAnswers) GetAnswer(ctx context.Context, id int) (models.Answe
 	return res, nil
 }
 
-func(s *StorageMockAnswers) DeleteAnswer(ctx context.Context, id int) error{
+func(s *StorageMockAnswers) DeleteAnswer(ctx context.Context, id int) (int, error){
 	if _, ok := s.db[id]; !ok {
-		return errors.New("NotFound")
+		return 0, errors.New("NotFound")
 	}
 	delete(s.db, id)
-	return nil
+	return 1, nil
 }
 
 func(s *StorageMockQuestions) CreateQuestion(ctx context.Context, data *models.Question) error {
@@ -319,12 +319,12 @@ func(s *StorageMockQuestions) AllQuestions(ctx context.Context) ([]models.Questi
 	return res, nil
 }
 
-func(s *StorageMockQuestions) DeleteQuestion(ctx context.Context, id int) error {
+func(s *StorageMockQuestions) DeleteQuestion(ctx context.Context, id int) (int, error) {
 	if _, ok := s.db[id]; !ok {
-		return errors.New("NotFound")
+		return 0, errors.New("NotFound")
 	}
 	delete(s.db, id)
-	return nil
+	return 1, nil
 }
 
 func(s *StorageMockQuestions) Exist(ctx context.Context, id int) (bool, error) {

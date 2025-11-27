@@ -2,6 +2,7 @@ package http
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -21,6 +22,7 @@ func(s *Server) CreateAnswer(writer http.ResponseWriter, request *http.Request) 
 	if len(data) == 0 {
 		writer.WriteHeader(http.StatusBadRequest)
 		fmt.Fprint(writer, "Empty body")
+		return
 	}
 
 	id, err := getID(request)
@@ -36,6 +38,7 @@ func(s *Server) CreateAnswer(writer http.ResponseWriter, request *http.Request) 
 	if err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprint(writer, err.Error())
+		return
 	}
 	bytes := prepareResponse(res, s.log)
 	writer.WriteHeader(http.StatusCreated)
@@ -54,8 +57,13 @@ func(s *Server) GetAnswer(writer http.ResponseWriter, request *http.Request) {
 	s.log.Info(fmt.Sprintf("Recive request for get answer with id: %d", id))
 	res, err := s.service.Answer(ctx, id)
 	if err != nil {
-		writer.WriteHeader(http.StatusInternalServerError)
+		if err == errors.New("NotFound") {
+			writer.WriteHeader(http.StatusNotFound)
+		} else {
+			writer.WriteHeader(http.StatusInternalServerError)
+		}
 		fmt.Fprint(writer, err.Error())
+		return
 	}
 	bytes := prepareResponse(res, s.log)
 	writer.WriteHeader(http.StatusOK)
@@ -74,7 +82,11 @@ func(s *Server) DeleteAnswer(writer http.ResponseWriter, request *http.Request) 
 	s.log.Info(fmt.Sprintf("Recive request for delete answer with id: %d", id))
 	err = s.service.DeleteAnswer(ctx, id)
 	if err != nil {
-		writer.WriteHeader(http.StatusBadRequest)
+		if err == errors.New("NotFound") {
+			writer.WriteHeader(http.StatusNotFound)
+		} else {
+			writer.WriteHeader(http.StatusInternalServerError)
+		}
 		fmt.Fprint(writer, err.Error())
 		return
 	}
