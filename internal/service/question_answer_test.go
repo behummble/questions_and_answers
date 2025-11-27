@@ -327,9 +327,13 @@ func(s *StorageMockQuestions) DeleteQuestion(ctx context.Context, id int) (int, 
 	return 1, nil
 }
 
-func(s *StorageMockQuestions) Exist(ctx context.Context, id int) (bool, error) {
+func(s *StorageMockQuestions) Exist(ctx context.Context, id int) (models.Question, error) {
 	_, ok := s.db[id]
-	return ok, nil
+	
+	if !ok {
+		return models.Question{}, errors.New("NotFound")
+	}
+	return models.Question{}, nil
 }
 
 func(s *StorageMockAnswers) AllAnswers(questionID int) []models.Answer {

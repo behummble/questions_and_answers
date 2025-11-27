@@ -22,7 +22,7 @@ type StorageQuestion interface {
 	Question(ctx context.Context, id int) (models.QuestionWithAnswers, error)
 	AllQuestions(ctx context.Context) ([]models.Question, error)
 	DeleteQuestion(ctx context.Context, id int) (int, error)
-	Exist(ctx context.Context, id int) (bool, error)
+	Exist(ctx context.Context, id int) (models.Question, error)
 	Shutdown(ctx context.Context)
 }
 
@@ -131,8 +131,8 @@ func(s *Service) DeleteQuestion(ctx context.Context, id int) error {
 }
 
 func(s *Service) NewAnswer(ctx context.Context, answer []byte, questionID int) (models.CreateAnswerResponse, error) {
-	exist, err := s.questionStorage.Exist(ctx, questionID)
-	if err != nil {
+	_, err := s.questionStorage.Exist(ctx, questionID)
+	if err != nil && err != gorm.ErrRecordNotFound {
 		s.log.Error(
 			"DB_ReadingError", 
 			slog.String("component", "db"),
@@ -140,7 +140,7 @@ func(s *Service) NewAnswer(ctx context.Context, answer []byte, questionID int) (
 		)
 		return models.CreateAnswerResponse{}, errors.New("DBReadingError")
 	}
-	if !exist {
+	if err != nil {
 		return models.CreateAnswerResponse{}, errors.New("QuestionWithSendedIDNotExist")
 	}
 	
