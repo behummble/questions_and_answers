@@ -3,12 +3,12 @@ package service
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"log/slog"
 	"testing"
 	"time"
 
 	"github.com/behummble/Questions-answers/internal/models"
+	"github.com/behummble/Questions-answers/internal/mock"
 )
 
 func TestNewQuestionCorrect(t *testing.T) {
@@ -256,136 +256,17 @@ func CreateAnswer(service *Service, questionID int, t *testing.T) (models.Create
 	return res, nil
 }
 
-type StorageMockQuestions struct {
-	db map[int]models.Question
-}
-
-type StorageMockAnswers struct {
-	db map[int]models.Answer
-}
-
-func defaultTime() time.Time {
-	return time.Date(2000, time.January, 1, 8, 8, 8, 8, time.UTC)
-}
-
-func(s *StorageMockAnswers) CreateAnswer(ctx context.Context, data *models.Answer) error {
-	ind := len(s.db) + 1
-	data.CreatedAt = defaultTime()
-	data.ID = ind
-	s.db[ind] = *data
-	return nil
-}
-
-func(s *StorageMockAnswers) GetAnswer(ctx context.Context, id int) (models.Answer, error) {
-	res, ok := s.db[id]
-	if !ok {
-		return res, errors.New("NotFound")
-	}
-
-	return res, nil
-}
-
-func(s *StorageMockAnswers) DeleteAnswer(ctx context.Context, id int) (int, error){
-	if _, ok := s.db[id]; !ok {
-		return 0, errors.New("NotFound")
-	}
-	delete(s.db, id)
-	return 1, nil
-}
-
-func(s *StorageMockQuestions) CreateQuestion(ctx context.Context, data *models.Question) error {
-	ind := len(s.db) + 1
-	data.CreatedAt = defaultTime()
-	data.ID = ind
-	s.db[ind] = *data
-	return nil
-}
-
-func(s *StorageMockQuestions) Question(ctx context.Context, id int) (models.QuestionWithAnswers, error) {
-	res, ok := s.db[id]
-	if !ok {
-		return models.QuestionWithAnswers{}, errors.New("NotFound")
-	}
-
-	return models.QuestionWithAnswers{Question: res}, nil
-}
-
-func(s *StorageMockQuestions) AllQuestions(ctx context.Context) ([]models.Question, error) {
-	res := make([]models.Question, 0, len(s.db))
-	for _, v := range s.db {
-		res = append(res, v)
-	}
-
-	return res, nil
-}
-
-func(s *StorageMockQuestions) DeleteQuestion(ctx context.Context, id int) (int, error) {
-	if _, ok := s.db[id]; !ok {
-		return 0, errors.New("NotFound")
-	}
-	delete(s.db, id)
-	return 1, nil
-}
-
-func(s *StorageMockQuestions) Exist(ctx context.Context, id int) (models.Question, error) {
-	_, ok := s.db[id]
-	
-	if !ok {
-		return models.Question{}, errors.New("NotFound")
-	}
-	return models.Question{}, nil
-}
-
-func(s *StorageMockAnswers) AllAnswers(questionID int) []models.Answer {
-	res := make([]models.Answer, 0, len(s.db))
-	for l, v := range s.db {
-		if l == questionID {
-			res = append(res, v)
-		}
-	}
-
-	return res
-}
-
-func(s *StorageMockAnswers) DeleteAllAnswers(questionID int) {
-	del := make([]int, len(s.db))
-	for l := range s.db {
-		if l == questionID {
-			del = append(del, l)
-		}
-	}
-	for _, v := range del {
-		delete(s.db, v)
-	}
-}
-
-func(s *StorageMockAnswers) Shutdown(ctx context.Context) {
-
-}
-
-func(s *StorageMockQuestions) Shutdown(ctx context.Context) {
-	
-}
-
-func newMockStorageQuestions(len int) *StorageMockQuestions {
-	return &StorageMockQuestions{
-		db: make(map[int]models.Question, len),
-	}
-}
-
-func newMockStorageAnswers(len int) *StorageMockAnswers {
-	return &StorageMockAnswers{
-		db: make(map[int]models.Answer, len),
-	}
-}
-
 func newTestService(questionLen, answerLen int) *Service {
-	mockStorageQuestions := newMockStorageQuestions(questionLen)
-	mockStorageAnswers:= newMockStorageAnswers(answerLen)
+	mockStorageQuestions := mock.NewMockStorageQuestions(questionLen)
+	mockStorageAnswers:= mock.NewMockStorageAnswers(answerLen)
 
 	return NewService(
 		slog.Default(),
 		mockStorageQuestions,
 		mockStorageAnswers,
 	)
+}
+
+func defaultTime() time.Time {
+	return time.Date(2000, time.January, 1, 8, 8, 8, 8, time.UTC)
 }
