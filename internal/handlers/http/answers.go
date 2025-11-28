@@ -37,7 +37,11 @@ func(s *Server) CreateAnswer(writer http.ResponseWriter, request *http.Request) 
 
 	res, err := s.service.NewAnswer(ctx, data, id)
 	if err != nil {
-		writer.WriteHeader(http.StatusInternalServerError)
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			writer.WriteHeader(http.StatusNotFound)
+		} else {
+			writer.WriteHeader(http.StatusInternalServerError)
+		}
 		fmt.Fprint(writer, err.Error())
 		return
 	}

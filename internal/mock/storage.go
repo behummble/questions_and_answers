@@ -3,16 +3,19 @@ package mock
 import (
 	"time"
 	"context"
-	"errors"
 	"github.com/behummble/Questions-answers/internal/models"
+	"gorm.io/gorm"
 )
 
 type MockStorageQuestions struct {
 	db map[int]models.Question
+	id int
+	storageAnswers *MockStorageAnswers
 }
 
 type MockStorageAnswers struct {
 	db map[int]models.Answer
+	id int
 }
 
 func NewMockStorageAnswers(len int) *MockStorageAnswers {
@@ -21,24 +24,29 @@ func NewMockStorageAnswers(len int) *MockStorageAnswers {
 	}
 }
 
-func NewMockStorageQuestions(len int) *MockStorageQuestions {
+func NewMockStorageQuestions(len int, storageAnswers *MockStorageAnswers) *MockStorageQuestions {
 	return &MockStorageQuestions{
 		db: make(map[int]models.Question, len),
+		storageAnswers: storageAnswers,
 	}
 }
 
-func(s *MockStorageAnswers) CreateAnswer(ctx context.Context, data *models.Answer) error {
-	ind := len(s.db) + 1
-	data.CreatedAt = defaultTime()
-	data.ID = ind
-	s.db[ind] = *data
+func(s *MockStorageAnswers) CreateAnswer(ctx context.Context, data []*models.Answer) error {
+	for _, v := range data {
+		s.id += 1
+		ind := s.id
+		v.CreatedAt = defaultTime()
+		v.ID = ind
+		s.db[ind] = *v
+	}
+	
 	return nil
 }
 
 func(s *MockStorageAnswers) GetAnswer(ctx context.Context, id int) (models.Answer, error) {
 	res, ok := s.db[id]
 	if !ok {
-		return res, errors.New("NotFound")
+		return res, gorm.ErrRecordNotFound
 	}
 
 	return res, nil
@@ -46,14 +54,15 @@ func(s *MockStorageAnswers) GetAnswer(ctx context.Context, id int) (models.Answe
 
 func(s *MockStorageAnswers) DeleteAnswer(ctx context.Context, id int) (int, error){
 	if _, ok := s.db[id]; !ok {
-		return 0, errors.New("NotFound")
+		return 0, gorm.ErrRecordNotFound
 	}
 	delete(s.db, id)
 	return 1, nil
 }
 
 func(s *MockStorageQuestions) CreateQuestion(ctx context.Context, data *models.Question) error {
-	ind := len(s.db) + 1
+	s.id += 1
+	ind := s.id
 	data.CreatedAt = defaultTime()
 	data.ID = ind
 	s.db[ind] = *data
@@ -63,10 +72,12 @@ func(s *MockStorageQuestions) CreateQuestion(ctx context.Context, data *models.Q
 func(s *MockStorageQuestions) Question(ctx context.Context, id int) (models.QuestionWithAnswers, error) {
 	res, ok := s.db[id]
 	if !ok {
-		return models.QuestionWithAnswers{}, errors.New("NotFound")
+		return models.QuestionWithAnswers{}, gorm.ErrRecordNotFound
 	}
 
-	return models.QuestionWithAnswers{Question: res}, nil
+	answers := s.storageAnswers.AllAnswers(id)
+
+	return models.QuestionWithAnswers{Question: res, Answers: answers}, nil
 }
 
 func(s *MockStorageQuestions) AllQuestions(ctx context.Context) ([]models.Question, error) {
@@ -80,9 +91,10 @@ func(s *MockStorageQuestions) AllQuestions(ctx context.Context) ([]models.Questi
 
 func(s *MockStorageQuestions) DeleteQuestion(ctx context.Context, id int) (int, error) {
 	if _, ok := s.db[id]; !ok {
-		return 0, errors.New("NotFound")
+		return 0, gorm.ErrRecordNotFound
 	}
 	delete(s.db, id)
+	s.storageAnswers.DeleteAllAnswers(id)
 	return 1, nil
 }
 
@@ -90,15 +102,15 @@ func(s *MockStorageQuestions) Exist(ctx context.Context, id int) (models.Questio
 	_, ok := s.db[id]
 	
 	if !ok {
-		return models.Question{}, errors.New("NotFound")
+		return models.Question{}, gorm.ErrRecordNotFound
 	}
 	return models.Question{}, nil
 }
 
 func(s *MockStorageAnswers) AllAnswers(questionID int) []models.Answer {
 	res := make([]models.Answer, 0, len(s.db))
-	for l, v := range s.db {
-		if l == questionID {
+	for _, v := range s.db {
+		if v.QuestionID == questionID {
 			res = append(res, v)
 		}
 	}
@@ -108,9 +120,9 @@ func(s *MockStorageAnswers) AllAnswers(questionID int) []models.Answer {
 
 func(s *MockStorageAnswers) DeleteAllAnswers(questionID int) {
 	del := make([]int, len(s.db))
-	for l := range s.db {
-		if l == questionID {
-			del = append(del, l)
+	for ind, v := range s.db {
+		if v.QuestionID == questionID {
+			del = append(del, ind)
 		}
 	}
 	for _, v := range del {

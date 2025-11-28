@@ -56,6 +56,10 @@ func(s *Server) Shutdown(ctx context.Context) error {
 	return s.server.Shutdown(ctx)
 }
 
+func(s *Server) GetHandler() http.Handler {
+	return s.server.Handler
+}
+
 func newMux(s *Server) *http.ServeMux {
 	mux := http.NewServeMux()
 	mux.HandleFunc("POST /questions", s.CreateQuestion)

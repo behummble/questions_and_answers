@@ -6,8 +6,8 @@ import (
 	"github.com/behummble/Questions-answers/internal/models"
 )
 
-func(s *Storage) CreateAnswer(ctx context.Context, data *models.Answer) error {
-	return gorm.G[models.Answer](s.conn).Create(ctx, data)
+func(s *Storage) CreateAnswer(ctx context.Context, data []*models.Answer) error {
+	return s.conn.WithContext(ctx).Create(data).Error
 }
 
 func(s *Storage) GetAnswer(ctx context.Context, id int) (models.Answer, error) {

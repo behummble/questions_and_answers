@@ -23,7 +23,7 @@ func TestCreateQuestion(t *testing.T) {
     }
 
     rr := httptest.NewRecorder()
-    newMux(s).ServeHTTP(rr, req)
+    s.GetHandler().ServeHTTP(rr, req)
 
     if status := rr.Code; status != http.StatusCreated {
         t.Errorf("handler returned wrong status code: got %v want %v",
@@ -47,7 +47,7 @@ func TestCreateEmptyQuestion(t *testing.T) {
     }
 
     rr := httptest.NewRecorder()
-    newMux(s).ServeHTTP(rr, req)
+   s.GetHandler().ServeHTTP(rr, req)
 
     if status := rr.Code; status != http.StatusBadRequest {
         t.Errorf("handler returned wrong status code: got %v want %v",
@@ -64,7 +64,7 @@ func TestGetAllQuestion(t *testing.T) {
     }
 
     rr := httptest.NewRecorder()
-    newMux(s).ServeHTTP(rr, req)
+    s.GetHandler().ServeHTTP(rr, req)
 
     if status := rr.Code; status != http.StatusOK {
         t.Errorf("handler returned wrong status code: got %v want %v",
@@ -90,7 +90,7 @@ func TestGetQuestion(t *testing.T) {
 
     rr := httptest.NewRecorder()
 
-	newMux(s).ServeHTTP(rr, req)
+	s.GetHandler().ServeHTTP(rr, req)
 
     if status := rr.Code; status != http.StatusOK {
         t.Errorf("handler returned wrong status code: got %v want %v",
@@ -115,7 +115,7 @@ func TestGetQuestionWithoutID(t *testing.T) {
     }
 
     rr := httptest.NewRecorder()
-    newMux(s).ServeHTTP(rr, req)
+    s.GetHandler().ServeHTTP(rr, req)
 
     if status := rr.Code; status != http.StatusNotFound {
         t.Errorf("handler returned wrong status code: got %v want %v",
@@ -132,7 +132,7 @@ func TestGetQuestionWithIncorrectID(t *testing.T) {
     }
 
     rr := httptest.NewRecorder()
-    newMux(s).ServeHTTP(rr, req)
+    s.GetHandler().ServeHTTP(rr, req)
 
     if status := rr.Code; status != http.StatusBadRequest {
         t.Errorf("handler returned wrong status code: got %v want %v",
@@ -149,7 +149,7 @@ func TestDeleteQuestion(t *testing.T) {
     }
 
     rr := httptest.NewRecorder()
-    newMux(s).ServeHTTP(rr, req)
+    s.GetHandler().ServeHTTP(rr, req)
 
     if status := rr.Code; status != http.StatusNoContent {
         t.Errorf("handler returned wrong status code: got %v want %v",
@@ -166,7 +166,7 @@ func TestDeleteQuestionWithoutID(t *testing.T) {
     }
 
     rr := httptest.NewRecorder()
-    newMux(s).ServeHTTP(rr, req)
+    s.GetHandler().ServeHTTP(rr, req)
 
     if status := rr.Code; status != http.StatusNotFound {
         t.Errorf("handler returned wrong status code: got %v want %v",
@@ -183,7 +183,7 @@ func TestDeleteQuestionWithIncorrectID(t *testing.T) {
     }
 
     rr := httptest.NewRecorder()
-    newMux(s).ServeHTTP(rr, req)
+    s.GetHandler().ServeHTTP(rr, req)
 
     if status := rr.Code; status != http.StatusBadRequest {
         t.Errorf("handler returned wrong status code: got %v want %v",
@@ -200,7 +200,7 @@ func TestCreateCorrectAnswer(t *testing.T) {
     }
 
     rr := httptest.NewRecorder()
-    newMux(s).ServeHTTP(rr, req)
+    s.GetHandler().ServeHTTP(rr, req)
 
     if status := rr.Code; status != http.StatusCreated {
         t.Errorf("handler returned wrong status code: got %v want %v",
@@ -224,7 +224,7 @@ func TestCreateAnswerWithoutQuestionID(t *testing.T) {
     }
 
     rr := httptest.NewRecorder()
-    newMux(s).ServeHTTP(rr, req)
+    s.GetHandler().ServeHTTP(rr, req)
 
     if status := rr.Code; status != http.StatusMethodNotAllowed {
         t.Errorf("handler returned wrong status code: got %v want %v",
@@ -241,7 +241,7 @@ func TestCreateAnswerWithEmpyBody(t *testing.T) {
     }
 
     rr := httptest.NewRecorder()
-    newMux(s).ServeHTTP(rr, req)
+    s.GetHandler().ServeHTTP(rr, req)
 
     if status := rr.Code; status != http.StatusBadRequest {
         t.Errorf("handler returned wrong status code: got %v want %v",
@@ -258,7 +258,7 @@ func TestCreateAnswerWithIncorrectQuestionID(t *testing.T) {
     }
 
     rr := httptest.NewRecorder()
-    newMux(s).ServeHTTP(rr, req)
+    s.GetHandler().ServeHTTP(rr, req)
 
     if status := rr.Code; status != http.StatusBadRequest {
         t.Errorf("handler returned wrong status code: got %v want %v",
@@ -275,7 +275,7 @@ func TestGetAnswer(t *testing.T) {
     }
 
     rr := httptest.NewRecorder()
-    newMux(s).ServeHTTP(rr, req)
+    s.GetHandler().ServeHTTP(rr, req)
 
     if status := rr.Code; status != http.StatusOK {
         t.Errorf("handler returned wrong status code: got %v want %v",
@@ -300,7 +300,7 @@ func TestGetAnswerWithoutID(t *testing.T) {
     }
 
     rr := httptest.NewRecorder()
-    newMux(s).ServeHTTP(rr, req)
+    s.GetHandler().ServeHTTP(rr, req)
 
     if status := rr.Code; status != http.StatusNotFound {
         t.Errorf("handler returned wrong status code: got %v want %v",
@@ -317,7 +317,7 @@ func TestGetAnswerWithIncorrectID(t *testing.T) {
     }
 
     rr := httptest.NewRecorder()
-    newMux(s).ServeHTTP(rr, req)
+    s.GetHandler().ServeHTTP(rr, req)
 
     if status := rr.Code; status != http.StatusBadRequest {
         t.Errorf("handler returned wrong status code: got %v want %v",
@@ -334,7 +334,7 @@ func TestDeleteAnswer(t *testing.T) {
     }
 
     rr := httptest.NewRecorder()
-    newMux(s).ServeHTTP(rr, req)
+    s.GetHandler().ServeHTTP(rr, req)
 
     if status := rr.Code; status != http.StatusNoContent {
         t.Errorf("handler returned wrong status code: got %v want %v",
@@ -351,7 +351,7 @@ func TestDeleteAnswerWithoutID(t *testing.T) {
     }
 
     rr := httptest.NewRecorder()
-    newMux(s).ServeHTTP(rr, req)
+    s.GetHandler().ServeHTTP(rr, req)
 
     if status := rr.Code; status != http.StatusNotFound {
         t.Errorf("handler returned wrong status code: got %v want %v",
@@ -368,7 +368,7 @@ func TestDeleteAnswerWithIncorrectID(t *testing.T) {
     }
 
     rr := httptest.NewRecorder()
-    newMux(s).ServeHTTP(rr, req)
+    s.GetHandler().ServeHTTP(rr, req)
 
     if status := rr.Code; status != http.StatusBadRequest {
         t.Errorf("handler returned wrong status code: got %v want %v",
@@ -387,20 +387,6 @@ func createServer() *serv.Server {
 
 func serverConfig() *config.ServerConfig {
 	return &config.ServerConfig{}
-}
-
-func newMux(s *serv.Server) *http.ServeMux {
-	mux := http.NewServeMux()
-	mux.HandleFunc("POST /questions", s.CreateQuestion)
-	mux.HandleFunc("GET /questions", s.GetAllQuestions)
-	mux.HandleFunc("GET /questions/{id}", s.GetQuestion)
-	mux.HandleFunc("DELETE /questions/{id}", s.DeleteQuestion)
-
-	mux.HandleFunc("POST /questions/{id}/answers", s.CreateAnswer)
-	mux.HandleFunc("GET /answers/{id}", s.GetAnswer)
-	mux.HandleFunc("DELETE /answers/{id}", s.DeleteAnswer)
-	
-	return mux
 }
 
 type MockService struct {

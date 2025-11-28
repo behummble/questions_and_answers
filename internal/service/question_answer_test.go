@@ -139,17 +139,23 @@ func TestNewAnswerCorrect(t *testing.T) {
     }
 
 	excpected := models.CreateAnswerResponse {
-		Answer: models.Answer{
-			ID: 1,
-			Text: "test",
-			CreatedAt: time.Date(2000, time.January, 1, 8, 8, 8, 8, time.UTC),
-			UserID: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-			QuestionID: question.Question.ID,
+		Answers: []*models.Answer{
+			&models.Answer{
+				ID: 1,
+				Text: "test",
+				CreatedAt: time.Date(2000, time.January, 1, 8, 8, 8, 8, time.UTC),
+				UserID: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+				QuestionID: question.Question.ID,
+			},
 		},
 	}
 
-	if res != excpected {
-		t.Errorf("Excpected result %+v, got %+v", excpected, res)
+	if len(res.Answers) == 0 {
+		t.Error("Excpected not empty array, got 0")
+	}
+
+	if len(res.Answers) != 0 && res.Answers[0].ID != excpected.Answers[0].ID {
+		t.Errorf("Excpected result %+v, got %+v", excpected.Answers[0], res.Answers[0])
 	}
 
 }
@@ -181,7 +187,7 @@ func TestAnswer(t *testing.T) {
         t.Error("Unexcpected Error")
     }
 
-	excpected := models.GetAnswerResponse{Answer: created.Answer}
+	excpected := models.GetAnswerResponse{Answer: *created.Answers[0]}
 
 	if res != excpected {
 		t.Errorf("Excpected result %+v, got %+v", created, res)
@@ -242,7 +248,7 @@ func CreateQuestion(service *Service, t *testing.T) (models.CreateQuestionRespon
 
 func CreateAnswer(service *Service, questionID int, t *testing.T) (models.CreateAnswerResponse, error) {
 	m := models.CreateAnswerRequest{
-		Text: "test",
+		Texts: []string{"test"},
 		UserID: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
 	}
 	raw, err := json.Marshal(m)
@@ -257,8 +263,8 @@ func CreateAnswer(service *Service, questionID int, t *testing.T) (models.Create
 }
 
 func newTestService(questionLen, answerLen int) *Service {
-	mockStorageQuestions := mock.NewMockStorageQuestions(questionLen)
 	mockStorageAnswers:= mock.NewMockStorageAnswers(answerLen)
+	mockStorageQuestions := mock.NewMockStorageQuestions(questionLen, mockStorageAnswers)
 
 	return NewService(
 		slog.Default(),

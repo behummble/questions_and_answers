@@ -27,7 +27,7 @@ type StorageQuestion interface {
 }
 
 type StorageAnswer interface {
-	CreateAnswer(ctx context.Context, data *models.Answer) error
+	CreateAnswer(ctx context.Context, data []*models.Answer) error
 	GetAnswer(ctx context.Context, id int) (models.Answer, error)
 	DeleteAnswer(ctx context.Context, id int) (int, error)
 	Shutdown(ctx context.Context)
@@ -155,17 +155,20 @@ func(s *Service) NewAnswer(ctx context.Context, answer []byte, questionID int) (
 		return models.CreateAnswerResponse{}, errors.New("ParsingJSONError")
 	}
 
-	if answerRequest.Text == "" {
+	if len(answerRequest.Texts) == 0 {
 		return models.CreateAnswerResponse{}, errors.New("BodyExecutionError")
 	}
 
-	answerData := models.Answer{
-		Text: answerRequest.Text,
-		UserID: answerRequest.UserID,
-		QuestionID: questionID,
+	answerData := make([]*models.Answer, 0, len(answerRequest.Texts))
+	for _, text := range answerRequest.Texts {
+		answerData = append(answerData, &models.Answer{
+			Text: text,
+			UserID: answerRequest.UserID,
+			QuestionID: questionID,
+		})
 	}
 
-	err = s.answerStorage.CreateAnswer(ctx, &answerData)
+	err = s.answerStorage.CreateAnswer(ctx, answerData)
 	if err != nil {
 		s.log.Error(
 			"DB_WritingError", 
@@ -175,9 +178,11 @@ func(s *Service) NewAnswer(ctx context.Context, answer []byte, questionID int) (
 		return models.CreateAnswerResponse{}, errors.New("DB_WritingError")
 	}
 
-	s.log.Info(fmt.Sprintf("Create answer: %d for question with id: %d", answerData.ID, questionID))
+	for _, answer:= range answerData {
+		s.log.Info(fmt.Sprintf("Create answer: %d for question with id: %d", answer.ID, questionID))
+	}
 
-	return models.CreateAnswerResponse{Answer: answerData}, err
+	return models.CreateAnswerResponse{Answers: answerData}, err
 }
 
 func(s *Service) Answer(ctx context.Context, id int) (models.GetAnswerResponse, error) {
