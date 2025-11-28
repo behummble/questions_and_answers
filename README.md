@@ -31,8 +31,9 @@ A simple web server for managing questions and answers with a RESTful API. This 
    ```bash
    brew install goose 
    ```
+3. **Setup configuration file (next topic) and create .env file like example.env**
 
-2. **Run with Docker Compose**
+4. **Run with Docker Compose**
    ```bash
    docker-compose up -d
    ```
@@ -49,7 +50,7 @@ The API server will be available at the configured host and port (default: `loca
 
 ## Configuration
 
-Create a `config.yaml` file in the project root to customize the application settings:
+Change a `config.yaml` file in the project folder ./config to customize the application settings:
 
 ```yaml
 server:
@@ -61,10 +62,9 @@ database:
   port: 5432         # Database port
   name: "qa_db"      # Database name
   user: "postgres"   # Database username
-  password: "password" # Database password
 
 logging:
-  level: "info"      # Log level: debug, info, warning, error
+  level: 1      # Log level: debug, info, warning, error
   file: "app.log"    # Log file path
 ```
 
