@@ -31,14 +31,14 @@ A simple web server for managing questions and answers with a RESTful API. This 
    ```bash
    brew install goose 
    ```
-3. **Setup configuration file (next topic) and create .env file like example.env**
+3. **Setup configuration file (next topic)**
+4. **Create .env file like example.env in root directory**
 
-4. **Run with Docker Compose**
+5. **Run with Docker Compose**
    ```bash
    docker-compose up -d
    ```
-
-3. **Up migrations**
+6. **Up migrations**
    ```bash
    goose -dir ./migrations postgres "postgresql://your_username:your_password@your_host:your_port/your_dbName?sslmode=disable" up
    ```
