@@ -38,6 +38,10 @@ A simple web server for managing questions and answers with a RESTful API. This 
    ```bash
    docker-compose up -d
    ```
+   or for MacOs
+   ```bash
+   docker compose up -d
+   ```
 6. **Up migrations**
    ```bash
    goose -dir ./migrations postgres "postgresql://your_username:your_password@your_host:your_port/your_dbName?sslmode=disable" up
