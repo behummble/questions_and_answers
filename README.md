@@ -23,15 +23,27 @@ A simple web server for managing questions and answers with a RESTful API. This 
    cd <project-directory>
    ```
 
+2. **Install goose for migrations**
+   ```bash
+   go install github.com/pressly/goose/v3/cmd/goose@latest
+   ```
+   or for MacOs
+   ```bash
+   brew install goose 
+   ```
+
 2. **Run with Docker Compose**
    ```bash
    docker-compose up -d
    ```
 
-3. **Verify the server is running**
+3. **Up migrations**
    ```bash
-   curl http://localhost:8080/health
+   goose -dir ./migrations postgres "postgresql://your_username:your_password@your_host:your_port/your_dbName?sslmode=disable" up
    ```
+   example:
+   goose -dir ./migrations postgres "postgresql://admin:dGMavqa8-Z@127.0.0.1:5432/Questions?sslmode=disable" up
+
 
 The API server will be available at the configured host and port (default: `localhost:8080`).
 
@@ -56,97 +68,17 @@ logging:
   file: "app.log"    # Log file path
 ```
 
-## API Endpoints
-
-### Questions
-
-- **Create Question**
-  - `POST /api/questions`
-  - Body: `{"question": "Your question text"}`
-
-- **Get All Questions**
-  - `GET /api/questions`
-
-- **Get Specific Question**
-  - `GET /api/questions/{question_id}`
-
-- **Delete Question**
-  - `DELETE /api/questions/{question_id}`
-
-### Answers
-
-- **Create Answer**
-  - `POST /api/questions/{question_id}/answers`
-  - Body: `{"answer": "Your answer text"}`
-
-- **Get Specific Answer**
-  - `GET /api/answers/{answer_id}`
-
-- **Delete Answer**
-  - `DELETE /api/answers/{answer_id}`
-
-## Example Usage
-
-### Create a Question
-```bash
-curl -X POST http://localhost:8080/api/questions \
-  -H "Content-Type: application/json" \
-  -d '{"question": "What is Docker?"}'
-```
-
-### Add an Answer to a Question
-```bash
-curl -X POST http://localhost:8080/api/questions/1/answers \
-  -H "Content-Type: application/json" \
-  -d '{"answer": "Docker is a containerization platform."}'
-```
-
-### Get All Questions with Answers
-```bash
-curl http://localhost:8080/api/questions
-```
-
 ## Docker Compose
 
 The `docker-compose.yml` file defines two services:
 
-- **app**: The main API server
-- **db**: PostgreSQL database
+- **questions_answers**: The main API server
+- **postgres**: PostgreSQL database
+- **pg_admin**: PostgreSQL UI
 
 ### Environment Variables
 
-You can override configuration using environment variables:
-
-```yaml
-environment:
-  - SERVER_HOST=0.0.0.0
-  - SERVER_PORT=8080
-  - DB_HOST=db
-  - DB_PORT=5432
-  - DB_NAME=qa_db
-  - DB_USER=postgres
-  - DB_PASSWORD=password
-  - LOG_LEVEL=info
-```
-
-## Development
-
-### Running without Docker
-
-1. Install dependencies
-2. Ensure PostgreSQL is running
-3. Update `config.yaml` with local database credentials
-4. Run the application:
-   ```bash
-   ./start-server.sh
-   ```
-
-### Building Docker Image Manually
-
-```bash
-docker build -t qa-server .
-docker run -p 8080:8080 qa-server
-```
+You can override configuration using .env like in example.env:
 
 ## Logging
 
@@ -162,6 +94,6 @@ docker-compose logs app
 docker-compose down
 ```
 
-## License
+## API Documentation
 
-[Add your license information here]
+The project includes comprehensive API documentation using Swagger/OpenAPI specification. Documetnation in docs/swagger.
