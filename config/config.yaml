@@ -1,5 +1,5 @@
 server:
-  host: "localhost"
+  host: "0.0.0.0"
   port: 8080
   read_timeout: 30
 
@@ -8,7 +8,7 @@ log:
   level: 1
 
 storage:
-  host: "localhost"
+  host: "postgres"
   port: 5432
   db_name: "Questions"
   username: "myuser"
