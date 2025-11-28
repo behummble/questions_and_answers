@@ -222,7 +222,8 @@ components:
         - userID
       properties:
         text:
-          type: string
+          type: array
+          items: string
         userID:
           type: string
 
@@ -230,7 +231,9 @@ components:
       type: object
       properties:
         Answer:
-          $ref: '#/components/schemas/Answer'
+          type: array
+          items:
+            $ref: '#/components/schemas/Answer'
 
     GetAnswerResponse:
       type: object
