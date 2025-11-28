@@ -57,13 +57,13 @@ server:
   host: "0.0.0.0"    # HTTP server host
   port: 8080         # HTTP server port
 
-database:
+storage:
   host: "db"         # Database host (use "db" for Docker, "localhost" for local)
   port: 5432         # Database port
   name: "qa_db"      # Database name
   user: "postgres"   # Database username
 
-logging:
+log:
   level: 1      # Log level: debug, info, warning, error
   file: "app.log"    # Log file path
 ```
