@@ -19,8 +19,8 @@ A simple web server for managing questions and answers with a RESTful API. This 
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
-   cd <project-directory>
+   git clone https://github.com/behummble/questions_and_answers.git
+   cd questions_and_answers
    ```
 
 2. **Install goose for migrations**
@@ -31,13 +31,14 @@ A simple web server for managing questions and answers with a RESTful API. This 
    ```bash
    brew install goose 
    ```
+3. **Setup configuration file (next topic)**
+4. **Create .env file like example.env in root directory**
 
-2. **Run with Docker Compose**
+5. **Run with Docker Compose**
    ```bash
    docker-compose up -d
    ```
-
-3. **Up migrations**
+6. **Up migrations**
    ```bash
    goose -dir ./migrations postgres "postgresql://your_username:your_password@your_host:your_port/your_dbName?sslmode=disable" up
    ```
@@ -49,7 +50,7 @@ The API server will be available at the configured host and port (default: `loca
 
 ## Configuration
 
-Create a `config.yaml` file in the project root to customize the application settings:
+Change a `config.yaml` file in the project folder ./config to customize the application settings:
 
 ```yaml
 server:
@@ -61,10 +62,9 @@ database:
   port: 5432         # Database port
   name: "qa_db"      # Database name
   user: "postgres"   # Database username
-  password: "password" # Database password
 
 logging:
-  level: "info"      # Log level: debug, info, warning, error
+  level: 1      # Log level: debug, info, warning, error
   file: "app.log"    # Log file path
 ```
 

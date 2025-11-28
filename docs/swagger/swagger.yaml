@@ -83,7 +83,7 @@ paths:
 
   /questions/{id}/answers:
     post:
-      summary: Create an answer for a question
+      summary: Create an answers for a question
       parameters:
         - name: id
           in: path
@@ -218,12 +218,13 @@ components:
     CreateAnswerRequest:
       type: object
       required:
-        - text
+        - texts
         - userID
       properties:
-        text:
+        texts:
           type: array
-          items: string
+          items: 
+            type: string
         userID:
           type: string
 
