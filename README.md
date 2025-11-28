@@ -19,8 +19,8 @@ A simple web server for managing questions and answers with a RESTful API. This 
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
-   cd <project-directory>
+   git clone [<repository-url>](https://github.com/behummble/questions_and_answers.git)
+   cd questions_and_answers
    ```
 
 2. **Install goose for migrations**
