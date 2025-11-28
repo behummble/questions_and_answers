@@ -8,6 +8,8 @@ services:
       dockerfile: ./build/Dockerfile
     ports:
       - "8080:8080"
+    networks:
+      - app_network
     depends_on:
       - "postgres"
 
@@ -23,9 +25,9 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
-      - db_network
+      - app_network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U myuser -d mydatabase"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d Questions"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -41,7 +43,7 @@ services:
     ports:
       - "8078:80"
     networks:
-      - db_network
+      - app_network
     depends_on:
       - postgres
     env_file:
@@ -51,5 +53,5 @@ volumes:
   postgres_data:
 
 networks:
-  db_network:
+  app_network:
     driver: bridge
