@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"time"
+	"gorm.io/gorm"
 )
 
 
@@ -57,7 +58,7 @@ func(s *Server) GetAnswer(writer http.ResponseWriter, request *http.Request) {
 	s.log.Info(fmt.Sprintf("Recive request for get answer with id: %d", id))
 	res, err := s.service.Answer(ctx, id)
 	if err != nil {
-		if err == errors.New("NotFound") {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			writer.WriteHeader(http.StatusNotFound)
 		} else {
 			writer.WriteHeader(http.StatusInternalServerError)
@@ -82,7 +83,7 @@ func(s *Server) DeleteAnswer(writer http.ResponseWriter, request *http.Request) 
 	s.log.Info(fmt.Sprintf("Recive request for delete answer with id: %d", id))
 	err = s.service.DeleteAnswer(ctx, id)
 	if err != nil {
-		if err == errors.New("NotFound") {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			writer.WriteHeader(http.StatusNotFound)
 		} else {
 			writer.WriteHeader(http.StatusInternalServerError)

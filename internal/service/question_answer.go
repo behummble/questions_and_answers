@@ -93,7 +93,7 @@ func(s *Service) Question(ctx context.Context, id int) (models.GetQuestionRespon
 	}
 
 	if err != nil {
-		return models.GetQuestionResponse{}, errors.New("NotFound")
+		return models.GetQuestionResponse{}, err
 	}
 
 	return models.GetQuestionResponse{Question: res.Question, Answers: res.Answers}, nil
@@ -124,7 +124,7 @@ func(s *Service) DeleteQuestion(ctx context.Context, id int) error {
 		return errors.New("DB_DeletingError")
 	}
 	if rowsAffected == 0 {
-		return errors.New("NotFound")
+		return gorm.ErrRecordNotFound
 	}
 	s.log.Info(fmt.Sprintf("Delete question with id: %d", id))
 	return nil
@@ -141,7 +141,7 @@ func(s *Service) NewAnswer(ctx context.Context, answer []byte, questionID int) (
 		return models.CreateAnswerResponse{}, errors.New("DBReadingError")
 	}
 	if err != nil {
-		return models.CreateAnswerResponse{}, errors.New("QuestionWithSendedIDNotExist")
+		return models.CreateAnswerResponse{}, err
 	}
 	
 	var answerRequest models.CreateAnswerRequest
@@ -191,7 +191,7 @@ func(s *Service) Answer(ctx context.Context, id int) (models.GetAnswerResponse, 
 		return models.GetAnswerResponse{}, err
 	}
 	if err != nil {
-		return models.GetAnswerResponse{}, errors.New("NotFound")
+		return models.GetAnswerResponse{}, err
 	}
 	return models.GetAnswerResponse{Answer: answer}, err
 }
@@ -207,7 +207,7 @@ func(s *Service) DeleteAnswer(ctx context.Context, id int) error {
 		return errors.New("DB_DeletingError")
 	}
 	if rowsAffected == 0 {
-		return errors.New("NotFound")
+		return gorm.ErrRecordNotFound
 	}
 	s.log.Info(fmt.Sprintf("Delete answer with id: %d", id))
 	return nil

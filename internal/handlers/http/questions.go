@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 	"errors"
+	"gorm.io/gorm"
 )
 
 func(s *Server) CreateQuestion(writer http.ResponseWriter, request *http.Request) {
@@ -63,8 +64,9 @@ func(s *Server) GetQuestion(writer http.ResponseWriter, request *http.Request) {
 	}
 	s.log.Info(fmt.Sprintf("Recive a request to get question with id: %d", id))
 	res, err := s.service.Question(ctx, id)
+
 	if err != nil {
-		if err == errors.New("NotFound") {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			writer.WriteHeader(http.StatusNotFound)
 		} else {
 			writer.WriteHeader(http.StatusInternalServerError)
@@ -89,7 +91,7 @@ func(s *Server) DeleteQuestion(writer http.ResponseWriter, request *http.Request
 	s.log.Info(fmt.Sprintf("Recive a request to delete question with id: %d", id))
 	err = s.service.DeleteQuestion(ctx, id)
 	if err != nil {
-		if err == errors.New("NotFound") {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			writer.WriteHeader(http.StatusNotFound)
 		} else {
 			writer.WriteHeader(http.StatusInternalServerError)
